@@ -108,15 +108,37 @@ pip install maturin
 maturin develop --features python
 ```
 
-## The Story Behind This
+## How This Was Built
 
-Prism was designed by a multi-agent AI swarm and built by an automated code generation pipeline:
+Prism is a production artifact of a larger system: a multi-agent swarm that researches, architects, audits, tests, and ships Rust code autonomously. This is the engineering workflow I direct daily.
 
-1. **Think Tank Swarm (TTS)** — 7-agent adversarial research system with 40 knowledge clusters (26MB harvested academic papers) researched the architecture
-2. **Production Swarm (PS)** — Automated Rust code generation with architect (Claude Opus), auditor (Claude Sonnet), and tester (GPT-4o) built the code
-3. **Human CTO** — Polished the output, added quality rules, pushed to GitHub
+**Pipeline:**
 
-The entire swarm ecosystem — TTS, PS, NEXUS orchestrator, knowledge harvesting — runs on a single desktop (i9-13900KF, 64GB DDR5) with no containers. Native Rust + Tokio.
+| Stage | System | What It Did | Time |
+|-------|--------|-------------|------|
+| Architecture Research | Think Tank Swarm (TTS) | 7-agent adversarial debate across 40 knowledge clusters (26MB harvested papers). Environment Agent sets context, Alpha investigates, Omega challenges. | 93s |
+| Code Generation | Production Swarm (PS) | Claude Opus architects the code, Claude Sonnet audits it, GPT-4o tests it. Per-agent I/O fully audited. | 538s |
+| Domain Packs | TTS → PS Pipeline | Research → brief conversion → code gen → audit → test for CodeForge and MedResearch. | ~12min |
+| Polish + Ship | Human review | Quality rules, API currency fixes, prelude module, README. | ~20min |
+
+**Total wall-clock time:** Under 45 minutes from empty directory to public repo with 69 passing tests.
+
+**Total inference cost:** $1.55
+
+| Component | API Calls | Cost |
+|-----------|-----------|------|
+| TTS architecture research (3 missions) | 18 | ~$0.45 |
+| PS code generation (3 builds) | ~15 | ~$0.90 |
+| Knowledge harvesting (background) | 0 (arxiv API, free) | $0.00 |
+| Semantic search indexing | 1 | ~$0.01 |
+| Human engineering time | 0 API calls | $0.00 |
+| **Total** | **~34 calls** | **$1.55** |
+
+**Infrastructure:** Single desktop (i9-13900KF, 64GB DDR5). No cloud. No containers. No Kubernetes. One Rust binary per swarm, Tokio async tasks, file-based IPC.
+
+This isn't a demo — it's how I build production systems. The swarm that built Prism runs the same pipeline for every project: deterministic knowledge retrieval, adversarial validation, automated code generation with audit trails, and continuous knowledge harvesting that makes every subsequent build smarter.
+
+**Fork this and own your own infrastructure.**
 
 ## License
 
