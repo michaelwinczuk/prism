@@ -27,6 +27,10 @@ uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 pyo3 = { version = "0.21", features = ["extension-module"], optional = true }
 
+[[bench]]
+name = "throughput"
+harness = false
+
 [dev-dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "test-util"] }
 tempfile = "3"
