@@ -43,6 +43,10 @@ pub mod mesh;
 pub mod checkpoint;
 pub mod codeforge;
 pub mod medresearch;
+pub mod sentinel;
+pub mod sentinel_compliance;
+pub mod sentinel_audit;
+pub mod sentinel_wallet;
 pub mod prelude;
 
 #[cfg(feature = "python")]
