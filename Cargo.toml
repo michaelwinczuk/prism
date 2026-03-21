@@ -1,0 +1,41 @@
+[package]
+name = "prism-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT OR Apache-2.0"
+description = "Prism — Reliability layer for agentic AI systems: voting mesh, checkpoint/replay, and Python bindings"
+readme = "README.md"
+keywords = ["ai", "agents", "reliability", "consensus", "checkpoint"]
+categories = ["asynchronous", "science"]
+
+[lib]
+name = "prism_core"
+crate-type = ["lib"]
+
+[features]
+default = []
+python = ["dep:pyo3"]
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+async-trait = "0.1"
+thiserror = "1"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+pyo3 = { version = "0.21", features = ["extension-module"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "test-util"] }
+tempfile = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+panic = "abort"
+strip = true
+
+[workspace]
