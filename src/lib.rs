@@ -48,6 +48,7 @@ pub mod sentinel_compliance;
 pub mod sentinel_audit;
 pub mod sentinel_wallet;
 pub mod aegis;
+pub mod semantic_eyes;
 pub mod prelude;
 
 #[cfg(feature = "python")]
