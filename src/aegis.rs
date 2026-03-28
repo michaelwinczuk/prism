@@ -55,6 +55,7 @@ pub struct TradeAction {
 }
 
 /// Risk assessment for a trade.
+#[must_use = "safety outcome must be checked"]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RiskAssessment {
     /// Composite risk score (0.0 = safe, 1.0 = critical).
@@ -102,6 +103,7 @@ pub struct TradeOutcome {
 }
 
 /// What happened to the trade.
+#[must_use = "safety outcome must be checked"]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum TradeVerdict {
     /// Trade approved and can execute.

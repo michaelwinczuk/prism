@@ -71,6 +71,7 @@ pub struct ActionOutcome {
 }
 
 /// What happened to the action.
+#[must_use = "safety outcome must be checked"]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ActionVerdict {
     /// Approved and executed.
@@ -248,6 +249,41 @@ impl<S: CheckpointStore> Sentinel<S> {
                 audit_id,
                 processing_ms: start.elapsed().as_millis() as u64,
             });
+        }
+
+        // ── Check if consensus agreed on REJECTION ──
+        // High agreement doesn't mean approval — if agents unanimously say
+        // "REJECT", the action must be blocked, not approved.
+        {
+            let chosen_lower = consensus_result.chosen.content.to_lowercase();
+            if chosen_lower.contains("reject")
+                || chosen_lower.contains("block")
+                || chosen_lower.contains("deny")
+            {
+                let reason = format!(
+                    "consensus agreed on rejection ({:.0}% agreement): {}",
+                    agreement * 100.0,
+                    consensus_result.chosen.content.trim(),
+                );
+
+                let audit_id = self.audit.log(AuditEntry::action(
+                    &action.action_id,
+                    AuditSeverity::Critical,
+                    "ACTION BLOCKED — consensus agreed on rejection",
+                    &reason,
+                    serde_json::to_value(action).ok(),
+                ));
+
+                return Ok(ActionOutcome {
+                    action: action.clone(),
+                    verdict: ActionVerdict::Blocked { reason },
+                    compliance,
+                    consensus: consensus_summary,
+                    checkpoint_id: String::new(),
+                    audit_id,
+                    processing_ms: start.elapsed().as_millis() as u64,
+                });
+            }
         }
 
         // ── Step 3: Checkpoint (snapshot state before execution) ──

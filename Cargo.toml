@@ -27,9 +27,14 @@ uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 pyo3 = { version = "0.21", features = ["extension-module"], optional = true }
 memmap2 = "0.9"
+sha2 = "0.10"
 
 [[bench]]
 name = "throughput"
+harness = false
+
+[[bench]]
+name = "industry_benchmark"
 harness = false
 
 [dev-dependencies]

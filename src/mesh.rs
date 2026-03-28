@@ -92,6 +92,7 @@ impl Default for ConsensusConfig {
 // ---------------------------------------------------------------------------
 
 /// The outcome of a consensus round.
+#[must_use = "safety outcome must be checked"]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsensusResult {
     /// The chosen response (the consensus winner).

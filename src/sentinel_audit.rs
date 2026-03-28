@@ -124,7 +124,7 @@ impl AuditLog {
 
     /// Append an entry to the log. Returns the entry ID.
     pub fn log(&self, builder: AuditEntryBuilder) -> String {
-        let mut entries = self.entries.write().expect("audit log poisoned");
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
 
         let prev_hash = entries
             .last()
@@ -139,7 +139,7 @@ impl AuditLog {
 
     /// Get all entries.
     pub fn entries(&self) -> Vec<AuditEntry> {
-        self.entries.read().expect("audit log poisoned").clone()
+        self.entries.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Get entries for a specific action.
@@ -166,7 +166,7 @@ impl AuditLog {
 
     /// Verify chain integrity — returns (valid, first_broken_index).
     pub fn verify_chain(&self) -> (bool, Option<usize>) {
-        let entries = self.entries.read().expect("audit log poisoned");
+        let entries = self.entries.read().unwrap_or_else(|e| e.into_inner());
 
         for i in 1..entries.len() {
             if entries[i].prev_hash != entries[i - 1].hash {
@@ -191,36 +191,25 @@ impl AuditLog {
 
     /// Total entry count.
     pub fn len(&self) -> usize {
-        self.entries.read().expect("audit log poisoned").len()
+        self.entries.read().unwrap_or_else(|e| e.into_inner()).len()
     }
 
     /// Export the full log as JSON.
     pub fn to_json(&self) -> Result<String, serde_json::Error> {
-        let entries = self.entries.read().expect("audit log poisoned");
+        let entries = self.entries.read().unwrap_or_else(|e| e.into_inner());
         serde_json::to_string_pretty(&*entries)
     }
 }
 
 // ---------------------------------------------------------------------------
-// SHA-256 (pure Rust, no external dependency)
+// SHA-256 (cryptographic, via sha2 crate)
 // ---------------------------------------------------------------------------
 
-/// Simple SHA-256 implementation using std.
-/// In production, replace with ring or sha2 crate for performance.
+/// Compute SHA-256 hex digest for audit chain integrity.
 fn sha256_hex(input: &str) -> String {
-    // Use a simple hash for the audit chain.
-    // We avoid adding a sha2 dependency to keep the build minimal.
-    // This uses FNV-like mixing — NOT cryptographically secure.
-    // For production, swap to `sha2::Sha256` or `ring::digest`.
-    let mut h: u64 = 0xcbf29ce484222325;
-    for byte in input.bytes() {
-        h ^= byte as u64;
-        h = h.wrapping_mul(0x100000001b3);
-    }
-    let mut h2: u64 = 0x6c62272e07bb0142;
-    for byte in input.bytes().rev() {
-        h2 ^= byte as u64;
-        h2 = h2.wrapping_mul(0x517cc1b727220a95);
-    }
-    format!("{:016x}{:016x}", h, h2)
+    use sha2::{Sha256, Digest};
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    let result = hasher.finalize();
+    result.iter().map(|b| format!("{:02x}", b)).collect()
 }

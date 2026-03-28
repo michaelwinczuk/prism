@@ -46,7 +46,7 @@ pub struct KnowledgeFinding {
 
 /// Risk assessment from graph traversal.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RiskAssessment {
+pub struct SemanticRiskAssessment {
     pub risk_level: String,
     pub factors: Vec<KnowledgeFinding>,
     pub mitigations: Vec<KnowledgeFinding>,
@@ -180,7 +180,7 @@ impl SemanticEyes {
 
     /// Query risks for an action. Returns causes, contradictions, and tradeoffs
     /// found in the knowledge graph related to this action.
-    pub fn query_risks(&self, action: &str) -> RiskAssessment {
+    pub fn query_risks(&self, action: &str) -> SemanticRiskAssessment {
         let clusters = self.relevant_clusters(action, 5);
         let mut factors = Vec::new();
         let mut mitigations = Vec::new();
@@ -218,7 +218,7 @@ impl SemanticEyes {
             "low"
         }.to_string();
 
-        RiskAssessment { risk_level, factors, mitigations, contradictions }
+        SemanticRiskAssessment { risk_level, factors, mitigations, contradictions }
     }
 
     /// Find evidence supporting or contradicting a claim.

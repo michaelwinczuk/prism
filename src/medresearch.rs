@@ -6,6 +6,7 @@
 //! - [`ConsensusAuditor`] — Compare multiple agent outputs for factual agreement.
 
 use std::collections::{HashMap, HashSet};
+use chrono::Datelike;
 
 // ---------------------------------------------------------------------------
 // EvidenceScorer
@@ -58,7 +59,7 @@ fn keyword_overlap(a: &str, b: &str) -> f64 {
 }
 
 fn recency_score(year: u32) -> f64 {
-    let current_year = 2026u32;
+    let current_year = chrono::Utc::now().year() as u32;
     let age = current_year.saturating_sub(year);
     match age {
         0..=1 => 1.0,

@@ -132,10 +132,9 @@ async fn test_consensus_rejection_when_below_threshold() {
     let outcome = sentinel.gate(&action).await.unwrap();
 
     // 3 REJECT vs 1 APPROVE — consensus chooses REJECT (75% agree on REJECT).
-    // But agreement_ratio is 0.75 which exceeds 0.67 threshold.
-    // Sentinel approves based on agreement ratio, not content.
-    // This is correct — the mesh reached consensus (on REJECT content).
-    assert_eq!(outcome.verdict, ActionVerdict::Approved);
+    // Agreement ratio 0.75 exceeds 0.67 threshold, but the consensus content
+    // is "REJECT" — so Sentinel correctly blocks the action.
+    assert!(matches!(outcome.verdict, ActionVerdict::Blocked { .. }));
     assert!(outcome.consensus.agreement_ratio >= 0.67);
 }
 

@@ -127,7 +127,7 @@ impl DemoWallet {
 
     /// Fund a demo wallet with a balance.
     pub fn fund(&self, address: &str, asset: &str, amount: u128) {
-        let mut balances = self.balances.write().expect("lock poisoned");
+        let mut balances = self.balances.write().unwrap_or_else(|e| e.into_inner());
         balances
             .entry(address.to_string())
             .or_default()
@@ -155,7 +155,7 @@ impl WalletProvider for DemoWallet {
     }
 
     async fn get_balance(&self, address: &str, asset: &str) -> PrismResult<u128> {
-        let balances = self.balances.read().expect("lock poisoned");
+        let balances = self.balances.read().unwrap_or_else(|e| e.into_inner());
         Ok(balances
             .get(address)
             .and_then(|assets| assets.get(asset))
@@ -185,7 +185,7 @@ impl WalletProvider for DemoWallet {
 
         // Deduct from sender
         {
-            let mut balances = self.balances.write().expect("lock poisoned");
+            let mut balances = self.balances.write().unwrap_or_else(|e| e.into_inner());
             if let Some(assets) = balances.get_mut(&action.from) {
                 if let Some(bal) = assets.get_mut(asset) {
                     *bal = bal.saturating_sub(amount);
