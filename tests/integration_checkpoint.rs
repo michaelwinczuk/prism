@@ -2,13 +2,11 @@
 
 use async_trait::async_trait;
 use prism_core::checkpoint::{
-    Checkpoint, CheckpointStore, FileStore, MemoryStore, Message, MessageRole,
-    ReplayEngine, ReplayOutcome,
+    Checkpoint, CheckpointStore, FileStore, MemoryStore, Message, MessageRole, ReplayEngine,
+    ReplayOutcome,
 };
 use prism_core::error::PrismResult;
-use prism_core::mesh::{
-    AgentEndpoint, AgentResponse, ConsensusConfig, VotingMesh,
-};
+use prism_core::mesh::{AgentEndpoint, AgentResponse, ConsensusConfig, VotingMesh};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -34,7 +32,10 @@ async fn test_checkpoint_roundtrip_memory_store() {
 
     // Create a checkpoint with conversation history.
     let mut cp = Checkpoint::new("integration-test");
-    cp.add_message(Message::new(MessageRole::System, "You are a helpful assistant."));
+    cp.add_message(Message::new(
+        MessageRole::System,
+        "You are a helpful assistant.",
+    ));
     cp.add_message(Message::new(MessageRole::User, "What is Rust?"));
     cp.add_message(Message::new(
         MessageRole::Assistant,

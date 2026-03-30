@@ -5,9 +5,9 @@
 //!
 //! Run: cargo run --example travel_booking
 
-use std::collections::HashMap;
 use async_trait::async_trait;
 use prism_core::prelude::*;
+use std::collections::HashMap;
 
 /// A mock travel agent that recommends based on its specialty.
 struct TravelAgent {
@@ -32,9 +32,7 @@ impl AgentEndpoint for TravelAgent {
             content: self.recommendation.clone(),
             confidence: self.confidence,
             model_id: self.name.clone(),
-            metadata: HashMap::from([
-                ("specialty".into(), self.specialty.clone()),
-            ]),
+            metadata: HashMap::from([("specialty".into(), self.specialty.clone())]),
         })
     }
 
@@ -88,7 +86,12 @@ async fn main() -> Result<(), PrismError> {
     println!("Dissenting: {} agent(s)", result.dissenting.len());
 
     for d in &result.dissenting {
-        println!("  - {} suggested: {} (confidence: {:.0}%)", d.model_id, d.content, d.confidence * 100.0);
+        println!(
+            "  - {} suggested: {} (confidence: {:.0}%)",
+            d.model_id,
+            d.content,
+            d.confidence * 100.0
+        );
     }
 
     // Checkpoint the result

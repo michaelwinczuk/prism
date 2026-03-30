@@ -85,7 +85,11 @@ async fn main() {
     println!("  (Industry: CrewAI ~50-200ms, AutoGen ~100-500ms)\n");
 
     for agent_count in [3, 5, 7, 10] {
-        let mesh = build_mesh(agent_count, Duration::from_millis(1), ConsensusStrategy::Majority);
+        let mesh = build_mesh(
+            agent_count,
+            Duration::from_millis(1),
+            ConsensusStrategy::Majority,
+        );
 
         let iterations: u32 = 100;
         let start = Instant::now();

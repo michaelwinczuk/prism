@@ -5,9 +5,7 @@
 //!
 //! Run: cargo run --example clinical_research
 
-use prism_core::medresearch::{
-    CitationVerifier, ClaimExtractor, ConsensusAuditor, EvidenceScorer,
-};
+use prism_core::medresearch::{CitationVerifier, ClaimExtractor, ConsensusAuditor, EvidenceScorer};
 
 fn main() {
     println!("=== Prism Clinical Research Synthesis ===\n");
@@ -36,15 +34,27 @@ fn main() {
         let claims = ClaimExtractor::extract(output);
         println!("Agent {} found {} claims:", i + 1, claims.len());
         for claim in &claims {
-            println!("  [{:?}] {}", claim.claim_type,
-                if claim.text.len() > 80 { format!("{}...", &claim.text[..80]) } else { claim.text.clone() });
+            println!(
+                "  [{:?}] {}",
+                claim.claim_type,
+                if claim.text.len() > 80 {
+                    format!("{}...", &claim.text[..80])
+                } else {
+                    claim.text.clone()
+                }
+            );
         }
         println!();
     }
 
     // Step 2: Verify citations
     println!("--- Step 2: Citation Verification ---\n");
-    let citations = ["PMID: 28724542", "10.1016/S0140-6736(98)07019-6", "arXiv:2301.12345", "some random text"];
+    let citations = [
+        "PMID: 28724542",
+        "10.1016/S0140-6736(98)07019-6",
+        "arXiv:2301.12345",
+        "some random text",
+    ];
     for citation in &citations {
         let status = CitationVerifier::verify(citation);
         println!("  {:>45} → {:?}", citation, status);
@@ -59,8 +69,10 @@ fn main() {
         "https://pubmed.ncbi.nlm.nih.gov/28724542",
         2024,
     );
-    println!("  PubMed source (2024): relevance={:.2}, authority={:.2}, recency={:.2}, overall={:.2}",
-        score1.relevance, score1.authority, score1.recency, score1.overall);
+    println!(
+        "  PubMed source (2024): relevance={:.2}, authority={:.2}, recency={:.2}, overall={:.2}",
+        score1.relevance, score1.authority, score1.recency, score1.overall
+    );
 
     let score2 = EvidenceScorer::score(
         "metformin reduces HbA1c",
@@ -68,8 +80,10 @@ fn main() {
         "https://health-blog.example.com/metformin",
         2019,
     );
-    println!("  Blog source (2019):   relevance={:.2}, authority={:.2}, recency={:.2}, overall={:.2}",
-        score2.relevance, score2.authority, score2.recency, score2.overall);
+    println!(
+        "  Blog source (2019):   relevance={:.2}, authority={:.2}, recency={:.2}, overall={:.2}",
+        score2.relevance, score2.authority, score2.recency, score2.overall
+    );
     println!();
 
     // Step 4: Consensus audit
@@ -83,13 +97,27 @@ fn main() {
     if !report.agreed_claims.is_empty() {
         println!("\n  Agreed (appear in 2+ agents):");
         for claim in report.agreed_claims.iter().take(3) {
-            println!("    - {}", if claim.len() > 70 { format!("{}...", &claim[..70]) } else { claim.clone() });
+            println!(
+                "    - {}",
+                if claim.len() > 70 {
+                    format!("{}...", &claim[..70])
+                } else {
+                    claim.clone()
+                }
+            );
         }
     }
     if !report.disputed_claims.is_empty() {
         println!("\n  Disputed (appear in only 1 agent):");
         for claim in report.disputed_claims.iter().take(3) {
-            println!("    - {}", if claim.len() > 70 { format!("{}...", &claim[..70]) } else { claim.clone() });
+            println!(
+                "    - {}",
+                if claim.len() > 70 {
+                    format!("{}...", &claim[..70])
+                } else {
+                    claim.clone()
+                }
+            );
         }
     }
 

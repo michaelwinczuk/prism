@@ -310,9 +310,27 @@ fn test_audit_log_chain_integrity() {
 
     let log = AuditLog::new();
 
-    log.log(AuditEntry::action("tx-1", AuditSeverity::Info, "approved", "ok", None));
-    log.log(AuditEntry::action("tx-2", AuditSeverity::Warning, "flagged", "high risk", None));
-    log.log(AuditEntry::action("tx-3", AuditSeverity::Critical, "blocked", "sanctioned", None));
+    log.log(AuditEntry::action(
+        "tx-1",
+        AuditSeverity::Info,
+        "approved",
+        "ok",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-2",
+        AuditSeverity::Warning,
+        "flagged",
+        "high risk",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-3",
+        AuditSeverity::Critical,
+        "blocked",
+        "sanctioned",
+        None,
+    ));
 
     assert_eq!(log.len(), 3);
 
@@ -326,9 +344,27 @@ fn test_audit_log_filter_by_severity() {
 
     let log = AuditLog::new();
 
-    log.log(AuditEntry::action("tx-1", AuditSeverity::Info, "ok", "fine", None));
-    log.log(AuditEntry::action("tx-2", AuditSeverity::Critical, "bad", "blocked", None));
-    log.log(AuditEntry::action("tx-3", AuditSeverity::Info, "ok", "fine", None));
+    log.log(AuditEntry::action(
+        "tx-1",
+        AuditSeverity::Info,
+        "ok",
+        "fine",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-2",
+        AuditSeverity::Critical,
+        "bad",
+        "blocked",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-3",
+        AuditSeverity::Info,
+        "ok",
+        "fine",
+        None,
+    ));
 
     let critical = log.entries_by_severity(&AuditSeverity::Critical);
     assert_eq!(critical.len(), 1);
@@ -341,9 +377,27 @@ fn test_audit_log_filter_by_action() {
 
     let log = AuditLog::new();
 
-    log.log(AuditEntry::action("tx-1", AuditSeverity::Info, "approved", "ok", None));
-    log.log(AuditEntry::action("tx-2", AuditSeverity::Info, "approved", "ok", None));
-    log.log(AuditEntry::action("tx-1", AuditSeverity::Warning, "rolled back", "fail", None));
+    log.log(AuditEntry::action(
+        "tx-1",
+        AuditSeverity::Info,
+        "approved",
+        "ok",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-2",
+        AuditSeverity::Info,
+        "approved",
+        "ok",
+        None,
+    ));
+    log.log(AuditEntry::action(
+        "tx-1",
+        AuditSeverity::Warning,
+        "rolled back",
+        "fail",
+        None,
+    ));
 
     let tx1_entries = log.entries_for_action("tx-1");
     assert_eq!(tx1_entries.len(), 2);
@@ -354,7 +408,13 @@ fn test_audit_log_json_export() {
     use prism_core::sentinel_audit::{AuditEntry, AuditLog, AuditSeverity};
 
     let log = AuditLog::new();
-    log.log(AuditEntry::action("tx-1", AuditSeverity::Info, "test", "detail", None));
+    log.log(AuditEntry::action(
+        "tx-1",
+        AuditSeverity::Info,
+        "test",
+        "detail",
+        None,
+    ));
 
     let json = log.to_json().unwrap();
     assert!(json.contains("tx-1"));

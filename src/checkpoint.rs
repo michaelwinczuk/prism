@@ -385,7 +385,9 @@ impl ReplayEngine {
 
                 let outcome = match original {
                     Some(orig) => {
-                        if normalize_content(&orig.content) == normalize_content(&replay_response.content) {
+                        if normalize_content(&orig.content)
+                            == normalize_content(&replay_response.content)
+                        {
                             ReplayOutcome::Match
                         } else {
                             ReplayOutcome::Diverged
@@ -401,7 +403,10 @@ impl ReplayEngine {
                     ReplayOutcome::Match => "Replay output matches original checkpoint".to_string(),
                     ReplayOutcome::Diverged => format!(
                         "Replay output diverged: original='{}', replay='{}'",
-                        original.as_ref().map(|r| r.content.as_str()).unwrap_or("<none>"),
+                        original
+                            .as_ref()
+                            .map(|r| r.content.as_str())
+                            .unwrap_or("<none>"),
                         replay_response.content
                     ),
                     ReplayOutcome::Failed => unreachable!(),
@@ -622,8 +627,7 @@ mod tests {
 
     #[test]
     fn test_message_builder() {
-        let msg = Message::new(MessageRole::User, "hello")
-            .with_name("alice");
+        let msg = Message::new(MessageRole::User, "hello").with_name("alice");
         assert_eq!(msg.role, MessageRole::User);
         assert_eq!(msg.content, "hello");
         assert_eq!(msg.name.as_deref(), Some("alice"));

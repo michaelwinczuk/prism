@@ -173,10 +173,7 @@ impl<S: CheckpointStore> Sentinel<S> {
                 &action.action_id,
                 AuditSeverity::Critical,
                 "ACTION BLOCKED by compliance",
-                &format!(
-                    "Rules violated: {}",
-                    compliance.violated_rules.join(", ")
-                ),
+                &format!("Rules violated: {}", compliance.violated_rules.join(", ")),
                 serde_json::to_value(action).ok(),
             ));
 
@@ -203,7 +200,8 @@ impl<S: CheckpointStore> Sentinel<S> {
         let consensus_prompt = self.build_consensus_prompt(action, &compliance);
         let consensus_result = self.mesh.run(&consensus_prompt).await?;
 
-        let approvals = 1 + consensus_result.total_responses - consensus_result.dissenting.len()
+        let approvals = 1 + consensus_result.total_responses
+            - consensus_result.dissenting.len()
             - consensus_result.failed_agents;
         let total = consensus_result.total_responses;
         let agreement = consensus_result.agreement_ratio;
@@ -307,10 +305,9 @@ impl<S: CheckpointStore> Sentinel<S> {
         checkpoint
             .metadata
             .insert("risk_score".to_string(), compliance.risk_score.to_string());
-        checkpoint.metadata.insert(
-            "agreement_ratio".to_string(),
-            agreement.to_string(),
-        );
+        checkpoint
+            .metadata
+            .insert("agreement_ratio".to_string(), agreement.to_string());
 
         self.store.save(&checkpoint).await?;
 
@@ -367,7 +364,11 @@ impl<S: CheckpointStore> Sentinel<S> {
     }
 
     /// Build the prompt that consensus agents evaluate.
-    fn build_consensus_prompt(&self, action: &WalletAction, compliance: &ComplianceResult) -> String {
+    fn build_consensus_prompt(
+        &self,
+        action: &WalletAction,
+        compliance: &ComplianceResult,
+    ) -> String {
         format!(
             "SENTINEL TRANSACTION SAFETY CHECK\n\n\
              You are a financial safety agent. Evaluate this wallet action and respond with \

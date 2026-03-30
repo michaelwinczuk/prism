@@ -80,10 +80,7 @@ impl GitSync {
     }
 
     /// Clone a remote repository into `dest`.
-    pub async fn clone_repo(
-        url: &str,
-        dest: impl AsRef<Path>,
-    ) -> PrismResult<Self> {
+    pub async fn clone_repo(url: &str, dest: impl AsRef<Path>) -> PrismResult<Self> {
         let dest = dest.as_ref();
         let output = tokio::process::Command::new("git")
             .args(["clone", url])
@@ -114,9 +111,7 @@ impl GitSync {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(PrismError::Checkpoint(format!(
-                "git init failed: {stderr}"
-            )));
+            return Err(PrismError::Checkpoint(format!("git init failed: {stderr}")));
         }
         Ok(())
     }
@@ -287,8 +282,7 @@ impl DiffEngine {
         let hunks = Self::group_into_hunks(&edits, 3);
 
         for hunk in &hunks {
-            let (orig_start, orig_count, mod_start, mod_count) =
-                Self::hunk_header(hunk);
+            let (orig_start, orig_count, mod_start, mod_count) = Self::hunk_header(hunk);
             output.push_str(&format!(
                 "@@ -{},{} +{},{} @@\n",
                 orig_start, orig_count, mod_start, mod_count
@@ -341,11 +335,7 @@ impl DiffEngine {
         table
     }
 
-    fn backtrack<'a>(
-        table: &[Vec<usize>],
-        a: &[&'a str],
-        b: &[&'a str],
-    ) -> Vec<Edit<'a>> {
+    fn backtrack<'a>(table: &[Vec<usize>], a: &[&'a str], b: &[&'a str]) -> Vec<Edit<'a>> {
         let mut edits = Vec::new();
         let mut i = a.len();
         let mut j = b.len();
@@ -368,10 +358,7 @@ impl DiffEngine {
         edits
     }
 
-    fn group_into_hunks<'a>(
-        edits: &[Edit<'a>],
-        context: usize,
-    ) -> Vec<Vec<Edit<'a>>> {
+    fn group_into_hunks<'a>(edits: &[Edit<'a>], context: usize) -> Vec<Vec<Edit<'a>>> {
         if edits.is_empty() {
             return Vec::new();
         }
@@ -480,7 +467,10 @@ mod tests {
     fn test_diff_identical() {
         let text = "line1\nline2\nline3";
         let result = DiffEngine::diff(text, text);
-        assert!(result.is_empty(), "identical text should produce empty diff");
+        assert!(
+            result.is_empty(),
+            "identical text should produce empty diff"
+        );
     }
 
     #[test]

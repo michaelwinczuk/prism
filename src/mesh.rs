@@ -177,9 +177,7 @@ impl VotingMesh {
         for agent in &self.agents {
             let agent = Arc::clone(agent);
             let prompt = prompt.to_string();
-            handles.push(tokio::spawn(async move {
-                agent.generate(&prompt).await
-            }));
+            handles.push(tokio::spawn(async move { agent.generate(&prompt).await }));
         }
 
         // Collect results with timeout.
@@ -224,7 +222,12 @@ impl VotingMesh {
         }
 
         // Apply consensus strategy.
-        apply_consensus(&self.config.strategy, filtered, total_responses, failed_agents)
+        apply_consensus(
+            &self.config.strategy,
+            filtered,
+            total_responses,
+            failed_agents,
+        )
     }
 }
 
@@ -285,7 +288,11 @@ fn build_result(
     // Pick the highest-confidence response from the winning group as the chosen one.
     let chosen = winning_group
         .iter()
-        .max_by(|a, b| a.confidence.partial_cmp(&b.confidence).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| {
+            a.confidence
+                .partial_cmp(&b.confidence)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
         .cloned()
         .expect("winning group is non-empty"); // safe: we only call this with non-empty groups
 
@@ -325,7 +332,12 @@ fn consensus_majority(
         });
     }
 
-    Ok(build_result(winning_group, groups, total_responses, failed_agents))
+    Ok(build_result(
+        winning_group,
+        groups,
+        total_responses,
+        failed_agents,
+    ))
 }
 
 fn consensus_unanimous(
@@ -349,7 +361,12 @@ fn consensus_unanimous(
     }
 
     let winning_group = groups.remove(0);
-    Ok(build_result(winning_group, vec![], total_responses, failed_agents))
+    Ok(build_result(
+        winning_group,
+        vec![],
+        total_responses,
+        failed_agents,
+    ))
 }
 
 fn consensus_weighted(
@@ -375,7 +392,12 @@ fn consensus_weighted(
     }
 
     let winning_group = groups.remove(best_idx);
-    Ok(build_result(winning_group, groups, total_responses, failed_agents))
+    Ok(build_result(
+        winning_group,
+        groups,
+        total_responses,
+        failed_agents,
+    ))
 }
 
 // ---------------------------------------------------------------------------

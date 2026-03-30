@@ -154,7 +154,12 @@ async fn main() {
     };
 
     let r1 = aegis.gate_trade(&trade1).await.unwrap();
-    print_result(&r1.verdict, r1.risk.risk_score, r1.consensus.agreement_ratio, r1.processing_ms);
+    print_result(
+        &r1.verdict,
+        r1.risk.risk_score,
+        r1.consensus.agreement_ratio,
+        r1.processing_ms,
+    );
 
     // ══════════════════════════════════════════════════════
     // Scenario 2: Wash trading (should QUARANTINE)
@@ -196,7 +201,12 @@ async fn main() {
     };
 
     let r2 = aegis.gate_trade(&wash_buy).await.unwrap();
-    print_result(&r2.verdict, r2.risk.risk_score, r2.consensus.agreement_ratio, r2.processing_ms);
+    print_result(
+        &r2.verdict,
+        r2.risk.risk_score,
+        r2.consensus.agreement_ratio,
+        r2.processing_ms,
+    );
 
     // ══════════════════════════════════════════════════════
     // Scenario 3: Withdrawal to sanctioned address (should BLOCK)
@@ -240,7 +250,12 @@ async fn main() {
     };
 
     let r4 = aegis.gate_trade(&trade4).await.unwrap();
-    print_result(&r4.verdict, r4.risk.risk_score, r4.consensus.agreement_ratio, r4.processing_ms);
+    print_result(
+        &r4.verdict,
+        r4.risk.risk_score,
+        r4.consensus.agreement_ratio,
+        r4.processing_ms,
+    );
     if !r4.risk.signals.is_empty() {
         for s in &r4.risk.signals {
             println!("   ⚠ {}: {}", s.signal_type, s.detail);
@@ -254,7 +269,11 @@ async fn main() {
     let log = aegis.audit_log();
     let (valid, _) = log.verify_chain();
     println!("── Audit Trail ──");
-    println!("   {} entries, chain integrity: {}\n", log.len(), if valid { "VERIFIED" } else { "BROKEN" });
+    println!(
+        "   {} entries, chain integrity: {}\n",
+        log.len(),
+        if valid { "VERIFIED" } else { "BROKEN" }
+    );
 
     println!("═══════════════════════════════════════════════════════════");
     println!("  Demo Complete");
@@ -262,7 +281,10 @@ async fn main() {
     println!("  ✓ Wash trading:         QUARANTINED (pattern detected)");
     println!("  ✓ Sanctioned withdrawal: BLOCKED (OFAC)");
     println!("  ✓ Large order:          APPROVED with risk signals");
-    println!("  ✓ Audit chain:          {} entries, cryptographically verified", log.len());
+    println!(
+        "  ✓ Audit chain:          {} entries, cryptographically verified",
+        log.len()
+    );
     println!("═══════════════════════════════════════════════════════════");
 }
 
@@ -271,17 +293,28 @@ fn print_result(verdict: &TradeVerdict, risk: f64, agreement: f64, ms: u64) {
         TradeVerdict::Approved => {
             println!(
                 "   Verdict: APPROVED  |  Risk: {:.2}  |  Consensus: {:.0}%  |  Time: {}ms\n",
-                risk, agreement * 100.0, ms
+                risk,
+                agreement * 100.0,
+                ms
             );
         }
         TradeVerdict::Blocked { reason } => {
-            println!("   Verdict: BLOCKED  |  Risk: {:.2}  |  Reason: {}\n", risk, reason);
+            println!(
+                "   Verdict: BLOCKED  |  Risk: {:.2}  |  Reason: {}\n",
+                risk, reason
+            );
         }
         TradeVerdict::Quarantined { reason } => {
-            println!("   Verdict: QUARANTINED  |  Risk: {:.2}  |  Reason: {}\n", risk, reason);
+            println!(
+                "   Verdict: QUARANTINED  |  Risk: {:.2}  |  Reason: {}\n",
+                risk, reason
+            );
         }
         TradeVerdict::Rejected { reason } => {
-            println!("   Verdict: REJECTED  |  Risk: {:.2}  |  Reason: {}\n", risk, reason);
+            println!(
+                "   Verdict: REJECTED  |  Risk: {:.2}  |  Reason: {}\n",
+                risk, reason
+            );
         }
     }
 }

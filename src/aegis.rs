@@ -528,10 +528,9 @@ impl<S: CheckpointStore> Aegis<S> {
         checkpoint
             .metadata
             .insert("risk_score".to_string(), risk.risk_score.to_string());
-        checkpoint.metadata.insert(
-            "risk_category".to_string(),
-            format!("{:?}", risk.category),
-        );
+        checkpoint
+            .metadata
+            .insert("risk_category".to_string(), format!("{:?}", risk.category));
         checkpoint
             .metadata
             .insert("agreement".to_string(), agreement.to_string());

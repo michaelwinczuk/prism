@@ -5,8 +5,8 @@
 //! - [`ClaimExtractor`] — Extract quantitative/verifiable claims from text.
 //! - [`ConsensusAuditor`] — Compare multiple agent outputs for factual agreement.
 
-use std::collections::{HashMap, HashSet};
 use chrono::Datelike;
+use std::collections::{HashMap, HashSet};
 
 // ---------------------------------------------------------------------------
 // EvidenceScorer
@@ -40,20 +40,31 @@ impl EvidenceScorer {
         let recency = recency_score(year);
         let authority = authority_score(source_url);
         let overall = relevance * 0.40 + recency * 0.25 + authority * 0.35;
-        EvidenceScore { relevance, recency, authority, overall }
+        EvidenceScore {
+            relevance,
+            recency,
+            authority,
+            overall,
+        }
     }
 }
 
 fn keyword_overlap(a: &str, b: &str) -> f64 {
-    let a_words: HashSet<String> = a.to_lowercase().split_whitespace()
+    let a_words: HashSet<String> = a
+        .to_lowercase()
+        .split_whitespace()
         .filter(|w| w.len() > 3)
         .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()).to_string())
         .collect();
-    let b_words: HashSet<String> = b.to_lowercase().split_whitespace()
+    let b_words: HashSet<String> = b
+        .to_lowercase()
+        .split_whitespace()
         .filter(|w| w.len() > 3)
         .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()).to_string())
         .collect();
-    if a_words.is_empty() { return 0.0; }
+    if a_words.is_empty() {
+        return 0.0;
+    }
     let overlap = a_words.intersection(&b_words).count();
     (overlap as f64 / a_words.len() as f64).min(1.0)
 }
@@ -72,13 +83,27 @@ fn recency_score(year: u32) -> f64 {
 
 fn authority_score(url: &str) -> f64 {
     let lower = url.to_lowercase();
-    if lower.contains(".gov") || lower.contains("nih.gov") || lower.contains("cdc.gov") { return 0.95; }
-    if lower.contains("pubmed") || lower.contains("ncbi.nlm") { return 0.92; }
-    if lower.contains("nature.com") || lower.contains("science.org") || lower.contains("lancet") { return 0.90; }
-    if lower.contains("arxiv.org") { return 0.85; }
-    if lower.contains(".edu") { return 0.80; }
-    if lower.contains("who.int") { return 0.90; }
-    if lower.contains("wikipedia") { return 0.50; }
+    if lower.contains(".gov") || lower.contains("nih.gov") || lower.contains("cdc.gov") {
+        return 0.95;
+    }
+    if lower.contains("pubmed") || lower.contains("ncbi.nlm") {
+        return 0.92;
+    }
+    if lower.contains("nature.com") || lower.contains("science.org") || lower.contains("lancet") {
+        return 0.90;
+    }
+    if lower.contains("arxiv.org") {
+        return 0.85;
+    }
+    if lower.contains(".edu") {
+        return 0.80;
+    }
+    if lower.contains("who.int") {
+        return 0.90;
+    }
+    if lower.contains("wikipedia") {
+        return 0.50;
+    }
     0.40
 }
 
@@ -106,12 +131,19 @@ impl CitationVerifier {
         let trimmed = citation.trim();
 
         // PubMed ID: PMID followed by 7-8 digits
-        if let Some(pmid) = trimmed.strip_prefix("PMID:").or_else(|| trimmed.strip_prefix("PMID ")) {
+        if let Some(pmid) = trimmed
+            .strip_prefix("PMID:")
+            .or_else(|| trimmed.strip_prefix("PMID "))
+        {
             let digits: String = pmid.trim().chars().filter(|c| c.is_ascii_digit()).collect();
             return if digits.len() >= 7 && digits.len() <= 9 {
-                CitationStatus::Valid { format: "PubMed".into() }
+                CitationStatus::Valid {
+                    format: "PubMed".into(),
+                }
             } else {
-                CitationStatus::Suspicious { reason: format!("PMID should be 7-9 digits, got {}", digits.len()) }
+                CitationStatus::Suspicious {
+                    reason: format!("PMID should be 7-9 digits, got {}", digits.len()),
+                }
             };
         }
 
@@ -119,11 +151,17 @@ impl CitationVerifier {
         if trimmed.starts_with("10.") || trimmed.contains("doi.org/10.") {
             let doi_part = if let Some(idx) = trimmed.find("10.") {
                 &trimmed[idx..]
-            } else { trimmed };
-            return if doi_part.contains('/') && doi_part.len() > 7 {
-                CitationStatus::Valid { format: "DOI".into() }
             } else {
-                CitationStatus::Suspicious { reason: "DOI format incomplete".into() }
+                trimmed
+            };
+            return if doi_part.contains('/') && doi_part.len() > 7 {
+                CitationStatus::Valid {
+                    format: "DOI".into(),
+                }
+            } else {
+                CitationStatus::Suspicious {
+                    reason: "DOI format incomplete".into(),
+                }
             };
         }
 
@@ -131,9 +169,13 @@ impl CitationVerifier {
         if trimmed.contains("arxiv") || trimmed.contains("arXiv") {
             let has_id = trimmed.chars().any(|c| c.is_ascii_digit());
             return if has_id {
-                CitationStatus::Valid { format: "arxiv".into() }
+                CitationStatus::Valid {
+                    format: "arxiv".into(),
+                }
             } else {
-                CitationStatus::Suspicious { reason: "arxiv reference without ID".into() }
+                CitationStatus::Suspicious {
+                    reason: "arxiv reference without ID".into(),
+                }
             };
         }
 
@@ -141,7 +183,9 @@ impl CitationVerifier {
         if trimmed.starts_with("RFC") || trimmed.starts_with("rfc") {
             let digits: String = trimmed.chars().filter(|c| c.is_ascii_digit()).collect();
             return if !digits.is_empty() {
-                CitationStatus::Valid { format: "RFC".into() }
+                CitationStatus::Valid {
+                    format: "RFC".into(),
+                }
             } else {
                 CitationStatus::InvalidFormat
             };
@@ -187,7 +231,9 @@ impl ClaimExtractor {
 
         for sentence in text.split(|c: char| c == '.' || c == '\n') {
             let s = sentence.trim();
-            if s.len() < 10 { continue; }
+            if s.len() < 10 {
+                continue;
+            }
 
             // Percentages: X%
             if s.contains('%') {
@@ -200,7 +246,8 @@ impl ClaimExtractor {
 
             // Comparisons: X-fold, X times
             let lower = s.to_lowercase();
-            if lower.contains("-fold") || lower.contains(" times ") || lower.contains("compared to") {
+            if lower.contains("-fold") || lower.contains(" times ") || lower.contains("compared to")
+            {
                 claims.push(ExtractedClaim {
                     text: s.to_string(),
                     claim_type: ClaimType::Comparison,
@@ -209,8 +256,11 @@ impl ClaimExtractor {
             }
 
             // Statistics: p < 0.05, p-value, CI
-            if lower.contains("p <") || lower.contains("p-value") || lower.contains("confidence interval")
-                || lower.contains("statistically significant") {
+            if lower.contains("p <")
+                || lower.contains("p-value")
+                || lower.contains("confidence interval")
+                || lower.contains("statistically significant")
+            {
                 claims.push(ExtractedClaim {
                     text: s.to_string(),
                     claim_type: ClaimType::Statistic,
@@ -274,15 +324,15 @@ impl ConsensusAuditor {
         }
 
         // Extract claims from each output
-        let all_claims: Vec<Vec<ExtractedClaim>> = outputs.iter()
-            .map(|o| ClaimExtractor::extract(o))
-            .collect();
+        let all_claims: Vec<Vec<ExtractedClaim>> =
+            outputs.iter().map(|o| ClaimExtractor::extract(o)).collect();
 
         // Normalize claim text for comparison
         let mut claim_sources: HashMap<String, usize> = HashMap::new();
         for agent_claims in &all_claims {
             // Deduplicate per agent
-            let unique: HashSet<String> = agent_claims.iter()
+            let unique: HashSet<String> = agent_claims
+                .iter()
                 .map(|c| c.text.to_lowercase().trim().to_string())
                 .collect();
             for claim in unique {
@@ -290,17 +340,23 @@ impl ConsensusAuditor {
             }
         }
 
-        let agreed: Vec<String> = claim_sources.iter()
+        let agreed: Vec<String> = claim_sources
+            .iter()
             .filter(|(_, count)| **count >= 2)
             .map(|(claim, _)| claim.clone())
             .collect();
-        let disputed: Vec<String> = claim_sources.iter()
+        let disputed: Vec<String> = claim_sources
+            .iter()
             .filter(|(_, count)| **count == 1)
             .map(|(claim, _)| claim.clone())
             .collect();
 
         let total = agreed.len() + disputed.len();
-        let ratio = if total > 0 { agreed.len() as f64 / total as f64 } else { 0.0 };
+        let ratio = if total > 0 {
+            agreed.len() as f64 / total as f64
+        } else {
+            0.0
+        };
 
         AuditReport {
             agreed_claims: agreed,
@@ -370,7 +426,10 @@ mod tests {
 
     #[test]
     fn test_citation_verifier_invalid() {
-        assert_eq!(CitationVerifier::verify("just some text"), CitationStatus::InvalidFormat);
+        assert_eq!(
+            CitationVerifier::verify("just some text"),
+            CitationStatus::InvalidFormat
+        );
     }
 
     #[test]
@@ -390,19 +449,22 @@ mod tests {
 
     #[test]
     fn test_claim_extractor_comparison() {
-        let claims = ClaimExtractor::extract("Drug A was 3-fold more effective compared to placebo");
+        let claims =
+            ClaimExtractor::extract("Drug A was 3-fold more effective compared to placebo");
         assert!(claims.iter().any(|c| c.claim_type == ClaimType::Comparison));
     }
 
     #[test]
     fn test_claim_extractor_statistic() {
-        let claims = ClaimExtractor::extract("Results were statistically significant with p < 0.001");
+        let claims =
+            ClaimExtractor::extract("Results were statistically significant with p < 0.001");
         assert!(claims.iter().any(|c| c.claim_type == ClaimType::Statistic));
     }
 
     #[test]
     fn test_claim_extractor_sample_size() {
-        let claims = ClaimExtractor::extract("The study enrolled patients with sample size n = 500");
+        let claims =
+            ClaimExtractor::extract("The study enrolled patients with sample size n = 500");
         assert!(claims.iter().any(|c| c.claim_type == ClaimType::SampleSize));
     }
 
@@ -416,7 +478,10 @@ mod tests {
         ];
         let report = ConsensusAuditor::audit(&outputs);
         assert_eq!(report.agents_compared, 3);
-        assert!(!report.agreed_claims.is_empty(), "Identical sentences should agree");
+        assert!(
+            !report.agreed_claims.is_empty(),
+            "Identical sentences should agree"
+        );
         assert!(report.agreement_ratio > 0.0);
     }
 

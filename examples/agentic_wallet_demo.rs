@@ -17,7 +17,9 @@ use prism_core::mesh::{
 };
 use prism_core::sentinel::{Sentinel, SentinelConfig, WalletAction};
 use prism_core::sentinel_audit::AuditLog;
-use prism_core::sentinel_compliance::{ComplianceEngine, OfacScreening, VelocityLimit, AmountLimit};
+use prism_core::sentinel_compliance::{
+    AmountLimit, ComplianceEngine, OfacScreening, VelocityLimit,
+};
 use prism_core::sentinel_wallet::{DemoWallet, X402PaymentRequest};
 use std::sync::Arc;
 
@@ -170,8 +172,10 @@ async fn main() {
     let result1 = sentinel.gate(&action1).await.unwrap();
     println!(
         "   Verdict: {:?}  |  Risk: {:.2}  |  Consensus: {:.0}%  |  Time: {}ms\n",
-        result1.verdict, result1.compliance.risk_score,
-        result1.consensus.agreement_ratio * 100.0, result1.processing_ms,
+        result1.verdict,
+        result1.compliance.risk_score,
+        result1.consensus.agreement_ratio * 100.0,
+        result1.processing_ms,
     );
 
     // ══════════════════════════════════════════════════════
@@ -237,8 +241,10 @@ async fn main() {
     let result4 = sentinel.gate(&action4).await.unwrap();
     println!(
         "   Verdict: {:?}  |  Risk: {:.2}  |  Consensus: {:.0}%  |  Time: {}ms\n",
-        result4.verdict, result4.compliance.risk_score,
-        result4.consensus.agreement_ratio * 100.0, result4.processing_ms,
+        result4.verdict,
+        result4.compliance.risk_score,
+        result4.consensus.agreement_ratio * 100.0,
+        result4.processing_ms,
     );
 
     // ══════════════════════════════════════════════════════

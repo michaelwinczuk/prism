@@ -8,7 +8,9 @@ use prism_core::mesh::{
 };
 use prism_core::sentinel::SentinelConfig;
 use prism_core::sentinel_audit::AuditLog;
-use prism_core::sentinel_compliance::{AmountLimit, ComplianceEngine, OfacScreening, VelocityLimit};
+use prism_core::sentinel_compliance::{
+    AmountLimit, ComplianceEngine, OfacScreening, VelocityLimit,
+};
 use std::sync::Arc;
 
 // ── Test agents ──────────────────────────────────────────
@@ -25,7 +27,9 @@ impl AgentEndpoint for ApproveBot {
             metadata: Default::default(),
         })
     }
-    fn agent_id(&self) -> String { "approve".to_string() }
+    fn agent_id(&self) -> String {
+        "approve".to_string()
+    }
 }
 
 fn make_trade(id: &str, value_usd: f64) -> TradeAction {
@@ -136,15 +140,18 @@ fn test_risk_engine_low_risk_normal_trade() {
 fn test_risk_engine_concentration_risk() {
     let engine = RiskEngine::with_config(
         50_000.0,
-        1.0,           // 1% of daily volume
-        1_000_000.0,   // $1M daily volume
+        1.0,         // 1% of daily volume
+        1_000_000.0, // $1M daily volume
         0.8,
     );
 
     let trade = make_trade("T-CONC", 50_000.0); // 5% of daily volume
     let risk = engine.assess(&trade);
 
-    assert!(risk.signals.iter().any(|s| s.signal_type == "concentration_risk"));
+    assert!(risk
+        .signals
+        .iter()
+        .any(|s| s.signal_type == "concentration_risk"));
     assert!(risk.risk_score > 0.0);
 }
 
@@ -160,7 +167,10 @@ fn test_risk_engine_large_order_flagged() {
     let trade = make_trade("T-BIG", 50_000.0);
     let risk = engine.assess(&trade);
 
-    assert!(risk.signals.iter().any(|s| s.signal_type == "large_order_monitor"));
+    assert!(risk
+        .signals
+        .iter()
+        .any(|s| s.signal_type == "large_order_monitor"));
 }
 
 #[test]

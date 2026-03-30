@@ -12,19 +12,15 @@
 //! import prism_core
 //! ```
 
-use pyo3::prelude::*;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
+use pyo3::prelude::*;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::checkpoint::{
-    Checkpoint, CheckpointStore, MemoryStore, Message, MessageRole,
-};
+use crate::checkpoint::{Checkpoint, CheckpointStore, MemoryStore, Message, MessageRole};
 use crate::error::PrismError;
-use crate::mesh::{
-    AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusStrategy, VotingMesh,
-};
+use crate::mesh::{AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusStrategy, VotingMesh};
 
 use async_trait::async_trait;
 use tokio::runtime::Runtime;
@@ -99,26 +95,29 @@ impl AgentEndpoint for PyCallableAgent {
                     })
             };
 
-            let content: String = extract_field("content")?
-                .extract()
-                .map_err(|e| PrismError::AgentError {
-                    agent_id: self.agent_id.clone(),
-                    message: format!("'content' must be a string: {e}"),
-                })?;
+            let content: String =
+                extract_field("content")?
+                    .extract()
+                    .map_err(|e| PrismError::AgentError {
+                        agent_id: self.agent_id.clone(),
+                        message: format!("'content' must be a string: {e}"),
+                    })?;
 
-            let confidence: f64 = extract_field("confidence")?
-                .extract()
-                .map_err(|e| PrismError::AgentError {
-                    agent_id: self.agent_id.clone(),
-                    message: format!("'confidence' must be a float: {e}"),
-                })?;
+            let confidence: f64 =
+                extract_field("confidence")?
+                    .extract()
+                    .map_err(|e| PrismError::AgentError {
+                        agent_id: self.agent_id.clone(),
+                        message: format!("'confidence' must be a float: {e}"),
+                    })?;
 
-            let model_id: String = extract_field("model_id")?
-                .extract()
-                .map_err(|e| PrismError::AgentError {
-                    agent_id: self.agent_id.clone(),
-                    message: format!("'model_id' must be a string: {e}"),
-                })?;
+            let model_id: String =
+                extract_field("model_id")?
+                    .extract()
+                    .map_err(|e| PrismError::AgentError {
+                        agent_id: self.agent_id.clone(),
+                        message: format!("'model_id' must be a string: {e}"),
+                    })?;
 
             Ok(AgentResponse {
                 content,
@@ -279,16 +278,13 @@ impl PyCheckpointManager {
     ///     checkpoint_id: the checkpoint ID
     ///     role: "user", "assistant", "system", or "tool"
     ///     content: the message text
-    fn add_message(
-        &mut self,
-        checkpoint_id: &str,
-        role: &str,
-        content: &str,
-    ) -> PyResult<()> {
-        let cp = self
-            .drafts
-            .get_mut(checkpoint_id)
-            .ok_or_else(|| PyValueError::new_err(format!("Checkpoint '{}' not found in drafts", checkpoint_id)))?;
+    fn add_message(&mut self, checkpoint_id: &str, role: &str, content: &str) -> PyResult<()> {
+        let cp = self.drafts.get_mut(checkpoint_id).ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "Checkpoint '{}' not found in drafts",
+                checkpoint_id
+            ))
+        })?;
 
         let role = match role {
             "user" => MessageRole::User,
@@ -309,10 +305,12 @@ impl PyCheckpointManager {
 
     /// Save a draft checkpoint to the store.
     fn save(&mut self, checkpoint_id: &str) -> PyResult<()> {
-        let cp = self
-            .drafts
-            .remove(checkpoint_id)
-            .ok_or_else(|| PyValueError::new_err(format!("Checkpoint '{}' not found in drafts", checkpoint_id)))?;
+        let cp = self.drafts.remove(checkpoint_id).ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "Checkpoint '{}' not found in drafts",
+                checkpoint_id
+            ))
+        })?;
 
         let rt = get_runtime()?;
         rt.block_on(self.store.save(&cp)).map_err(prism_err_to_py)?;

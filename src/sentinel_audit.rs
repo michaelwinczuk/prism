@@ -139,7 +139,10 @@ impl AuditLog {
 
     /// Get all entries.
     pub fn entries(&self) -> Vec<AuditEntry> {
-        self.entries.read().unwrap_or_else(|e| e.into_inner()).clone()
+        self.entries
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     /// Get entries for a specific action.
@@ -178,7 +181,12 @@ impl AuditLog {
         for (i, entry) in entries.iter().enumerate() {
             let expected_input = format!(
                 "{}|{}|{}|{}|{}|{}",
-                entry.id, entry.timestamp, entry.action_id, entry.event, entry.detail, entry.prev_hash,
+                entry.id,
+                entry.timestamp,
+                entry.action_id,
+                entry.event,
+                entry.detail,
+                entry.prev_hash,
             );
             let expected = sha256_hex(&expected_input);
             if entry.hash != expected {
@@ -207,7 +215,7 @@ impl AuditLog {
 
 /// Compute SHA-256 hex digest for audit chain integrity.
 fn sha256_hex(input: &str) -> String {
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(input.as_bytes());
     let result = hasher.finalize();

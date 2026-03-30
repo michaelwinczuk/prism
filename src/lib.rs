@@ -38,26 +38,28 @@
 //! }
 //! ```
 
-pub mod error;
-pub mod mesh;
+pub mod aegis;
 pub mod checkpoint;
 pub mod codeforge;
+pub mod error;
 pub mod medresearch;
-pub mod sentinel;
-pub mod sentinel_compliance;
-pub mod sentinel_audit;
-pub mod sentinel_wallet;
-pub mod aegis;
-pub mod semantic_eyes;
+pub mod mesh;
 pub mod prelude;
+pub mod semantic_eyes;
+pub mod sentinel;
+pub mod sentinel_audit;
+pub mod sentinel_compliance;
+pub mod sentinel_wallet;
 
 #[cfg(feature = "python")]
 pub mod python;
 
 // Re-export primary public types at crate root for convenience.
-pub use error::PrismError;
-pub use mesh::{AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusResult, ConsensusStrategy, VotingMesh};
 pub use checkpoint::{
-    Checkpoint, CheckpointStore, FileStore, MemoryStore, Message, MessageRole,
-    ReplayEngine, ReplayOutcome, ReplayResult,
+    Checkpoint, CheckpointStore, FileStore, MemoryStore, Message, MessageRole, ReplayEngine,
+    ReplayOutcome, ReplayResult,
+};
+pub use error::PrismError;
+pub use mesh::{
+    AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusResult, ConsensusStrategy, VotingMesh,
 };

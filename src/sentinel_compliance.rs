@@ -104,11 +104,7 @@ impl ComplianceRule for OfacScreening {
     fn evaluate(&self, action: &WalletAction) -> (bool, f64, String) {
         if let Some(ref to) = action.to {
             if self.sanctioned.contains(&to.to_lowercase()) {
-                return (
-                    false,
-                    1.0,
-                    format!("Destination {} is OFAC-sanctioned", to),
-                );
+                return (false, 1.0, format!("Destination {} is OFAC-sanctioned", to));
             }
         }
         if self.sanctioned.contains(&action.from.to_lowercase()) {
@@ -307,7 +303,11 @@ impl ComplianceRule for AllowlistFilter {
                 (
                     false,
                     0.8,
-                    format!("{} is NOT on allowlist ({} allowed addresses)", to, self.allowed.len()),
+                    format!(
+                        "{} is NOT on allowlist ({} allowed addresses)",
+                        to,
+                        self.allowed.len()
+                    ),
                 )
             }
         } else {

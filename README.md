@@ -1,37 +1,62 @@
 # Prism
 
-**Experimental reliability primitives for multi-agent AI systems.**
+[![CI](https://github.com/michaelwinczuk/prism/actions/workflows/ci.yml/badge.svg)](https://github.com/michaelwinczuk/prism/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)](LICENSE)
 
-A Rust + Tokio library with Python bindings (PyO3) for consensus-based agent orchestration, checkpointing, and replay validation. This is a research project exploring agent reliability patterns.
+**Reliability primitives for multi-agent AI systems.**
+
+A Rust + Tokio library with Python bindings (PyO3) for consensus-based agent orchestration, safety pipelines, compliance enforcement, and replay validation. Framework overhead is sub-millisecond — real-world performance is dominated by LLM latency, not Prism.
 
 ---
 
-## What This Is
+## What This Does
 
-Prism provides building blocks for making multi-agent systems more reliable:
+Prism provides the infrastructure layer between your agents and their actions:
 
-- **VotingMesh** — Run N agents with different models, require consensus before accepting output
+- **VotingMesh** — Run N agents in parallel, require consensus before accepting output (Majority, Unanimous, Weighted)
+- **Sentinel** — Full safety pipeline: compliance check, consensus gate, checkpoint, execute, verify, audit
+- **Aegis** — Exchange compliance engine with wash trading detection, spoofing detection, and OFAC screening
 - **Checkpoint/Replay** — Snapshot conversation state, replay from any point, detect output divergence
-- **CodeForge** — Git-aware code generation scaffolding (clone, branch, sandbox-execute, diff)
-- **MedResearch** — Citation scoring and claim extraction (experimental)
-- **Python bindings** — Use from Python via PyO3
-
-## Status
-
-**Experimental / v0.1** — 69 tests pass, benchmarks run, the examples work. But this hasn't been used in a real production system. The Python bindings haven't been tested by real Python consumers. The benchmarks use mock agents — real LLM latency will dominate any framework overhead. Use it to learn from, prototype with, or contribute to.
+- **CodeForge** — Git-aware code generation (clone, branch, sandbox-execute, diff)
+- **MedResearch** — Citation scoring, evidence verification, claim extraction
+- **Python bindings** — Use VotingMesh and Checkpoint from Python via PyO3
 
 ## Quick Start
+
+### Consensus
 
 ```rust
 use prism_core::prelude::*;
 
-let mut mesh = VotingMesh::new(ConsensusConfig::default());
-mesh.add_agent(agent_1);
-mesh.add_agent(agent_2);
-mesh.add_agent(agent_3);
+let mut mesh = VotingMesh::new(ConsensusConfig {
+    strategy: ConsensusStrategy::Majority,
+    min_confidence: 0.7,
+    timeout_ms: 5000,
+});
+mesh.add_agent(agent_claude);
+mesh.add_agent(agent_gpt4);
+mesh.add_agent(agent_sonnet);
 
 let result = mesh.run("Analyze this security vulnerability").await?;
-// result.agreement_ratio, result.confidence
+// result.agreement_ratio = 1.0, result.confidence = 0.95
+```
+
+### Safety Pipeline (Sentinel)
+
+```rust
+use prism_core::sentinel::*;
+
+// Sentinel runs the full pipeline: compliance → consensus → checkpoint → execute → verify → audit
+let action = WalletAction {
+    action_type: "transfer".into(),
+    amount: 5000.0,
+    asset: "USDC".into(),
+    to: "0xabc...".into(),
+    ..Default::default()
+};
+
+let outcome = sentinel.process(action).await?;
+// ActionVerdict::Approved | Blocked | RolledBack | Quarantined
 ```
 
 ### Checkpoint/Replay
@@ -43,7 +68,7 @@ cp.add_message(Message::new(MessageRole::User, "Find the bug"));
 cp.set_response(result.chosen);
 store.save(&cp).await?;
 
-// Replay and verify
+// Replay and detect divergence
 let engine = ReplayEngine::new(Arc::new(mesh));
 let replay = engine.replay(&cp).await?;
 assert_eq!(replay.outcome, ReplayOutcome::Match);
@@ -59,55 +84,94 @@ mesh.add_agent("claude", claude_fn)
 mesh.add_agent("gpt4", gpt4_fn)
 
 result = mesh.run("Is this code safe to deploy?")
+print(f"Agreement: {result['agreement_ratio']}")
 ```
+
+## Modules
+
+| Module | What it does |
+|--------|-------------|
+| **VotingMesh** | N-agent parallel consensus with configurable strategies |
+| **Sentinel** | 6-stage safety pipeline (compliance → consensus → checkpoint → execute → verify → audit) |
+| **Sentinel Compliance** | Pluggable rules engine — OFAC screening, velocity limits, amount limits, allowlists |
+| **Sentinel Audit** | SHA-256 hash-chained tamper-evident logging |
+| **Aegis** | Exchange compliance — wash trading, spoofing, layering detection + risk scoring |
+| **Checkpoint** | State snapshots with MemoryStore and FileStore backends |
+| **ReplayEngine** | Replay from checkpoint, detect output divergence |
+| **CodeForge** | Git clone/branch/commit, sandbox execution with timeout, unified diffs |
+| **MedResearch** | Evidence scoring (relevance + recency + authority), citation verification, claim extraction |
+| **Semantic Eyes** | Knowledge graph traversal via mmap binary graphs |
 
 ## Benchmarks
 
-Run with `cargo bench --bench throughput`. These use **instant mock agents** — real-world performance will be dominated by LLM API latency, not framework overhead.
+```bash
+cargo bench --bench throughput
+```
 
-| Agents | Consensus/sec (mock) | Note |
-|--------|---------------------|------|
-| 3 | ~215,000 | Framework overhead is negligible |
-| 100 | ~15,000 | Scales well with agent count |
-| 1,000 | ~1,300 | Still sub-ms per consensus |
+Mock agents (measuring framework overhead only — real performance is LLM-bound):
+
+| Agents | Consensus/sec | Latency |
+|--------|--------------|---------|
+| 3 | ~215,000 | < 5 us |
+| 100 | ~15,000 | < 67 us |
+| 1,000 | ~1,300 | < 770 us |
 
 With 200ms simulated LLM calls, 10 agents finish in ~202ms (near-perfect parallelism via Tokio).
+
+## Examples
+
+```bash
+cargo run --example travel_booking           # VotingMesh consensus demo
+cargo run --example clinical_research        # MedResearch citation scoring
+cargo run --example agentic_wallet_demo      # Sentinel safety pipeline (5 scenarios)
+cargo run --example exchange_compliance_demo # Aegis wash trading + risk detection
+```
 
 ## Project Structure
 
 ```
-prism-core/
-  src/
-    lib.rs          # Public API
-    mesh.rs         # VotingMesh, consensus strategies
-    checkpoint.rs   # Checkpoint, FileStore, ReplayEngine
-    codeforge.rs    # Git ops, sandbox execution, diffing
-    medresearch.rs  # Evidence scoring, citation verification
-    python.rs       # PyO3 bindings (feature-gated)
-  examples/
-    travel_booking.rs
-    clinical_research.rs
-  benches/
-    throughput.rs
+src/
+  lib.rs                 # Public API + re-exports
+  mesh.rs                # VotingMesh, consensus strategies
+  checkpoint.rs          # Checkpoint, FileStore, ReplayEngine
+  sentinel.rs            # Safety pipeline orchestration
+  sentinel_compliance.rs # Compliance rules engine (OFAC, velocity, amount, allowlist)
+  sentinel_audit.rs      # SHA-256 hash-chained audit log
+  sentinel_wallet.rs     # Wallet provider trait + x402 payment protocol
+  aegis.rs               # Exchange compliance (wash/spoof/layer detection)
+  codeforge.rs           # Git operations, sandbox execution, diffs
+  medresearch.rs         # Evidence scoring, citation verification
+  semantic_eyes.rs       # Knowledge graph traversal (mmap)
+  python.rs              # PyO3 bindings (feature-gated)
+  error.rs               # Error types
+  prelude.rs             # Convenience re-exports
+tests/
+  integration_mesh.rs        # 5 consensus tests
+  integration_checkpoint.rs  # 6 checkpoint/replay tests
+  integration_sentinel.rs    # 18 safety pipeline tests
+  integration_aegis.rs       # 8 exchange compliance tests
+examples/
+  travel_booking.rs
+  clinical_research.rs
+  agentic_wallet_demo.rs
+  exchange_compliance_demo.rs
+benches/
+  throughput.rs
+  industry_benchmark.rs
 ```
 
 ## Building
 
 ```bash
 cargo build --release
-cargo test                          # 69 tests
-cargo bench --bench throughput      # benchmarks
+cargo test                          # 95 tests
+cargo bench --bench throughput      # framework benchmarks
+cargo clippy --all-targets          # lint
 
 # Python bindings
 pip install maturin
 maturin develop --features python
 ```
-
-## How This Was Built
-
-Built by a multi-agent AI swarm in one session. Architecture research by a 7-agent adversarial debate system (Think Tank Swarm), code generation by Claude Opus with Claude Sonnet auditing (Production Swarm). Human review took about 20 minutes. Total inference cost: $1.55.
-
-This is an artifact of a larger system we're building — not a polished product. If you find it useful or want to improve it, PRs welcome.
 
 ## License
 

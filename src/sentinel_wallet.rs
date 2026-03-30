@@ -173,10 +173,7 @@ impl WalletProvider for DemoWallet {
             return Ok(TransactionResult {
                 tx_hash: String::new(),
                 status: TransactionStatus::Failed {
-                    reason: format!(
-                        "insufficient balance: {} < {} {}",
-                        balance, amount, asset
-                    ),
+                    reason: format!("insufficient balance: {} < {} {}", balance, amount, asset),
                 },
                 gas_used: None,
                 block_number: None,

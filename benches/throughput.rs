@@ -10,8 +10,10 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use async_trait::async_trait;
-use prism_core::mesh::{AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusStrategy, VotingMesh};
 use prism_core::error::PrismResult;
+use prism_core::mesh::{
+    AgentEndpoint, AgentResponse, ConsensusConfig, ConsensusStrategy, VotingMesh,
+};
 
 /// Minimal mock agent — returns instantly with a fixed response.
 /// Measures pure orchestration overhead, not LLM latency.
